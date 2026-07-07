@@ -10,16 +10,24 @@ import org.miniproject.shoppingservice.event.OrderCreatedEvent;
 import org.miniproject.shoppingservice.producer.OrderProducer;
 import org.miniproject.shoppingservice.dto.OrderRequest;
 import org.miniproject.shoppingservice.dto.OrderResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderService {
+
     private final OrderRepository orderRepository;
     private final OrderProducer orderProducer;
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
+
+        log.info("주문 생성 요청 - customerId={}, productId={}, quantity={}",
+                request.getCustomerId(),
+                request.getProductId(),
+                request.getQuantity());
 
         Order order = Order.builder()
                 .customerId(request.getCustomerId())
@@ -29,6 +37,8 @@ public class OrderService {
                 .build();
 
         Order savedOrder = orderRepository.save(order);
+
+        log.info("DB 저장 완료 - orderId={}", savedOrder.getId());
 
         OrderCreatedEvent event = OrderCreatedEvent.builder()
                 .orderId(savedOrder.getId())
